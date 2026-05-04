@@ -46,14 +46,17 @@ cp .env.example .env   # then edit paths
 ```
 
 See [`docs/SETUP.md`](docs/SETUP.md) for the full walkthrough,
-[`docs/SCHEMA.md`](docs/SCHEMA.md) for the JSON output shape, and
-[`docs/PROVENANCE.md`](docs/PROVENANCE.md) for legal posture.
+[`docs/SCHEMA.md`](docs/SCHEMA.md) for the JSON output shape,
+[`docs/PROVENANCE.md`](docs/PROVENANCE.md) for legal posture, and
+[`examples/`](examples/) for a stdlib-only reference consumer of the
+JSON schema.
 
 ## Repo layout
 
 ```
 cokemusic-extractor/
 ├── extract/             Python: cct → JSON text bodies / scripts (Rail A)
+├── examples/            Reference consumers of the JSON schema
 ├── docs/                SETUP, SCHEMA, PROVENANCE
 ├── dirplayer-rs.lock    Pinned fork SHA
 └── setup.sh             Clones fork at pinned SHA
