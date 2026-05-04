@@ -65,13 +65,6 @@ not in this repo. `setup.sh` clones the fork for you; from there you
 `cd ../dirplayer-rs/vm-rust && cargo test ...` to dump bitmaps. See
 [SETUP.md](docs/SETUP.md) for the exact commands.
 
-## Known issues (v0.1)
-
-- `dump_dcr_bitmaps` (Recycler mini-game) currently writes to a
-  hardcoded `/tmp/dirplayer_dumps/recycler/` path instead of
-  `<OUTPUT_ROOT>/games/recycler/`. Output is correct, just in the
-  wrong place. Fork-side fix tracked for v0.2.
-
 ## License
 
 GPL-3.0-or-later. Inherited from

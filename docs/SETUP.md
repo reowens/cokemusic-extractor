@@ -56,8 +56,6 @@ cargo test --test dump_engine_bitmaps -- --nocapture
 cargo test --test dump_furniture_bitmaps -- --nocapture
 
 # Recycler mini-game (FurniFactory2.dcr)
-# v0.1 known issue: writes to /tmp/dirplayer_dumps/recycler/ rather
-# than $OUTPUT_ROOT. Fork-side fix planned for v0.2.
 cargo test --test dump_dcr_bitmaps -- --nocapture
 ```
 
@@ -72,8 +70,10 @@ Outputs land at:
 - `<OUTPUT_ROOT>/ui/...` — engine cast library PNGs
 - `<OUTPUT_ROOT>/furniture/_cc_furniture_members.json` — furniture
   regPoint metadata (JSON only, no PNGs)
-- `/tmp/dirplayer_dumps/recycler/` — Recycler mini-game (see v0.1
-  known issue above)
+- `<OUTPUT_ROOT>/games/recycler/` — Recycler mini-game PNGs +
+  `_members.json` (also dual-written to
+  `/tmp/dirplayer_dumps/recycler/` as a fixed scratch path for
+  debugging)
 
 Output paths are also documented in each dumper's source-file header
 inside the fork checkout.
