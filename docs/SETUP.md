@@ -85,7 +85,7 @@ never for CokeMusic — the casts are read-only archives).
 
 ```bash
 # 1. Start the CORS file server
-python3 extract/cors_server.py        # default :8000
+python3 extract/cors_server.py        # default :8765
 
 # 2. Boot dirplayer-rs in Electron with MCP enabled.
 #    See ../dirplayer-rs/README.md for the build instructions.
