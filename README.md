@@ -62,7 +62,7 @@ cokemusic-extractor/
 The Rust bitmap dumpers (Rail B) live in the fork at
 [`reowens/dirplayer-rs#cokemusic`](https://github.com/reowens/dirplayer-rs/tree/cokemusic) —
 not in this repo. `setup.sh` clones the fork for you; from there you
-`cd ../dirplayer-rs/vm-rust && cargo test ...` to dump bitmaps. See
+`cd ../dirplayer-rs && cargo test -p vm-rust ...` to dump bitmaps. See
 [SETUP.md](docs/SETUP.md) for the exact commands.
 
 ## License

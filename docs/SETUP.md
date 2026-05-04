@@ -37,32 +37,27 @@ source .env
 
 ## Rail B — bitmap dumpers (the routine path)
 
-From inside the fork's `vm-rust` crate (after `setup.sh` clones the
-fork as a sibling):
+From the fork checkout root (after `setup.sh` clones the fork as a
+sibling):
 
 ```bash
-cd ../dirplayer-rs/vm-rust    # or "$DIRPLAYER_DEST/vm-rust"
+cd ../dirplayer-rs    # or "$DIRPLAYER_DEST"
 
 # Backgrounds + per-room sprites for the 23 publicrooms
-cargo test --test dump_cct_bitmaps -- --nocapture
+cargo test -p vm-rust --test dump_cct_bitmaps -- --nocapture
 
 # Studio templates (Studio A-G + suites)
-cargo test --test dump_studio_bitmaps -- --nocapture
+cargo test -p vm-rust --test dump_studio_bitmaps -- --nocapture
 
 # Engine cast libraries (cc_room, cc_furniture, chatengine, etc.)
-cargo test --test dump_engine_bitmaps -- --nocapture
+cargo test -p vm-rust --test dump_engine_bitmaps -- --nocapture
 
 # Furniture regPoint metadata (JSON only, no PNGs)
-cargo test --test dump_furniture_bitmaps -- --nocapture
+cargo test -p vm-rust --test dump_furniture_bitmaps -- --nocapture
 
 # Recycler mini-game (FurniFactory2.dcr)
-cargo test --test dump_dcr_bitmaps -- --nocapture
+cargo test -p vm-rust --test dump_dcr_bitmaps -- --nocapture
 ```
-
-> **Why `cd vm-rust/`?** The dirplayer-rs fork has no top-level
-> `Cargo.toml` workspace — only `vm-rust/Cargo.toml`. So `cargo test`
-> needs to run from inside the crate. v0.2 may add a workspace at the
-> fork root so this becomes optional.
 
 Outputs land at:
 - `<OUTPUT_ROOT>/rooms/<room_id>/...` — publicroom + studio PNGs and
