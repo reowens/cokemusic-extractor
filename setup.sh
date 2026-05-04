@@ -35,7 +35,8 @@ remote=$(jq -r '.remote' "$lockfile")
 branch=$(jq -r '.branch' "$lockfile")
 sha=$(jq -r '.sha' "$lockfile")
 
-dest="${1:-${DIRPLAYER_DEST:-$script_dir/../dirplayer-rs}}"
+parent_dir="$(cd "$script_dir/.." && pwd)"
+dest="${1:-${DIRPLAYER_DEST:-$parent_dir/dirplayer-rs}}"
 
 echo "Toolchain pin: $remote @ $sha (branch $branch)"
 echo "Destination:   $dest"

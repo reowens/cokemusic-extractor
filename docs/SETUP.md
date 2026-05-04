@@ -37,29 +37,46 @@ source .env
 
 ## Rail B — bitmap dumpers (the routine path)
 
-From the FORK checkout (sibling directory after `setup.sh`):
+From inside the fork's `vm-rust` crate (after `setup.sh` clones the
+fork as a sibling):
 
 ```bash
-cd ../dirplayer-rs    # or your $DIRPLAYER_DEST
+cd ../dirplayer-rs/vm-rust    # or "$DIRPLAYER_DEST/vm-rust"
 
 # Backgrounds + per-room sprites for the 23 publicrooms
-cargo test -p vm-rust --test dump_cct_bitmaps -- --nocapture
+cargo test --test dump_cct_bitmaps -- --nocapture
 
 # Studio templates (Studio A-G + suites)
-cargo test -p vm-rust --test dump_studio_bitmaps -- --nocapture
+cargo test --test dump_studio_bitmaps -- --nocapture
 
 # Engine cast libraries (cc_room, cc_furniture, chatengine, etc.)
-cargo test -p vm-rust --test dump_engine_bitmaps -- --nocapture
+cargo test --test dump_engine_bitmaps -- --nocapture
 
 # Furniture regPoint metadata (JSON only, no PNGs)
-cargo test -p vm-rust --test dump_furniture_bitmaps -- --nocapture
+cargo test --test dump_furniture_bitmaps -- --nocapture
 
 # Recycler mini-game (FurniFactory2.dcr)
-cargo test -p vm-rust --test dump_dcr_bitmaps -- --nocapture
+# v0.1 known issue: writes to /tmp/dirplayer_dumps/recycler/ rather
+# than $OUTPUT_ROOT. Fork-side fix planned for v0.2.
+cargo test --test dump_dcr_bitmaps -- --nocapture
 ```
 
-The dumpers write to `<OUTPUT_ROOT>/assets/rooms/<room_id>/...` etc.
-Output paths are documented in each dumper's source-file header.
+> **Why `cd vm-rust/`?** The dirplayer-rs fork has no top-level
+> `Cargo.toml` workspace — only `vm-rust/Cargo.toml`. So `cargo test`
+> needs to run from inside the crate. v0.2 may add a workspace at the
+> fork root so this becomes optional.
+
+Outputs land at:
+- `<OUTPUT_ROOT>/rooms/<room_id>/...` — publicroom + studio PNGs and
+  `_members.json` sidecars
+- `<OUTPUT_ROOT>/ui/...` — engine cast library PNGs
+- `<OUTPUT_ROOT>/furniture/_cc_furniture_members.json` — furniture
+  regPoint metadata (JSON only, no PNGs)
+- `/tmp/dirplayer_dumps/recycler/` — Recycler mini-game (see v0.1
+  known issue above)
+
+Output paths are also documented in each dumper's source-file header
+inside the fork checkout.
 
 ## Rail A — text bodies (rare, heavy)
 

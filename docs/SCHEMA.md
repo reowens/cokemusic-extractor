@@ -56,8 +56,8 @@ PNGs for bitmap members are produced by Rail B (the Rust dumpers in
 the fork), not Rail A. The Rust dumpers cross-reference Rail A's
 `members[]` to know which cast members to render. Output:
 
-- `<OUTPUT_ROOT>/assets/rooms/<room_id>/<member_name>.png`
-- `<OUTPUT_ROOT>/assets/rooms/<room_id>/_members.json` — sidecar with
+- `<OUTPUT_ROOT>/rooms/<room_id>/<member_name>.png`
+- `<OUTPUT_ROOT>/rooms/<room_id>/_members.json` — sidecar with
   per-member metadata (regPoint, bitDepth, originalBitDepth, useAlpha,
   width, height) consumed by downstream atlas builders.
 

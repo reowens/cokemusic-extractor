@@ -30,7 +30,9 @@ modern code can read:
 
 Most users only need Rail B. Rail A's outputs are typically committed
 alongside downstream consumers, so a fresh checkout has the text
-bodies without re-running Rail A.
+bodies without re-running Rail A. **Rail B does not depend on Rail
+A's output** — if you only want PNGs and `_members.json` sidecars,
+skip Rail A entirely and leave `ROOM_JSON_DIR` unset.
 
 ## Quickstart
 
@@ -60,8 +62,15 @@ cokemusic-extractor/
 The Rust bitmap dumpers (Rail B) live in the fork at
 [`reowens/dirplayer-rs#cokemusic`](https://github.com/reowens/dirplayer-rs/tree/cokemusic) —
 not in this repo. `setup.sh` clones the fork for you; from there you
-`cd ../dirplayer-rs && cargo test ...` to dump bitmaps. See
+`cd ../dirplayer-rs/vm-rust && cargo test ...` to dump bitmaps. See
 [SETUP.md](docs/SETUP.md) for the exact commands.
+
+## Known issues (v0.1)
+
+- `dump_dcr_bitmaps` (Recycler mini-game) currently writes to a
+  hardcoded `/tmp/dirplayer_dumps/recycler/` path instead of
+  `<OUTPUT_ROOT>/games/recycler/`. Output is correct, just in the
+  wrong place. Fork-side fix tracked for v0.2.
 
 ## License
 
