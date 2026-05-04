@@ -64,3 +64,39 @@ the fork), not Rail A. The Rust dumpers cross-reference Rail A's
 The `_members.json` schema mirrors the dumper source — see
 `vm-rust/tests/dump_cct_bitmaps.rs` in the fork for the canonical
 shape.
+
+## Sound members
+
+WAVs for sound members are also produced by Rail B (currently only
+the `.dcr` dumper, `dump_dcr_bitmaps`; the `.cct` dumpers are
+bitmap-only). For each named `CastMemberType::Sound` member, the
+dumper calls `SoundChunk::to_wav()` to convert the cast bytes to
+PCM WAV. Output (using the recycler dump as the example):
+
+- `<OUTPUT_ROOT>/games/recycler/sounds/<member_name>.wav`
+- `<OUTPUT_ROOT>/games/recycler/sounds/_sounds.json` — sidecar with
+  per-sound metadata, one entry per WAV. Schema:
+
+```json
+[
+  {
+    "name": "<cast member name>",
+    "filename": "<safe_name>.wav",
+    "castLib": <int>,
+    "castMember": <int>,
+    "channels": <int>,
+    "sampleRate": <Hz>,
+    "bitsPerSample": <8 or 16>,
+    "sampleCount": <int>,
+    "codec": "raw_pcm | ima_adpcm | ...",
+    "wavByteLength": <int>
+  }
+]
+```
+
+Cast member names are preserved verbatim in `name`; `filename`
+applies the same alphanumeric-only sanitization the dumper uses for
+PNG filenames. Unnamed sound members are skipped (they have no
+useful identifier for downstream gameplay code to reference). The
+canonical schema lives in `vm-rust/tests/dump_dcr_bitmaps.rs` in
+the fork.

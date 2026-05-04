@@ -12,12 +12,15 @@ if you want to actually *play* Director files in a browser.)
 
 CokeMusic / Coke Studios was a 2005-2007 browser game by Coca-Cola
 built on Macromedia Director. The cast files (`.cct`, `.dcr`) hold
-all the room art, sprites, scripts, and scene metadata in Director's
-binary format. This toolchain converts those files into formats
-modern code can read:
+all the room art, sprites, scripts, sounds, and scene metadata in
+Director's binary format. This toolchain converts those files into
+formats modern code can read:
 
 - **Bitmap members → PNG** (per-room background, every sprite,
   furniture members, palette-cycle variants, filmLoop manifests).
+- **Sound members → WAV** (PCM, with a `_sounds.json` sidecar
+  carrying channels / sample rate / bit depth / codec; currently
+  emitted by the `.dcr` dumper).
 - **Text bodies → JSON** (scene XML, room descriptions, member names,
   attached Lingo scripts).
 
@@ -26,7 +29,7 @@ modern code can read:
 | Rail | Tool | Output | Frequency |
 |---|---|---|---|
 | **A — text bodies + scripts** | `extract/extract_room.py` (Python; drives Electron + dirplayer-rs MCP) | `extracted/<room>.json` per room | Once per cct change. Heavy ritual. |
-| **B — bitmap members** | Cargo tests in the dirplayer-rs fork (Rust, no Electron) | `<room_id>/<member>.png`, `_members.json` | Routine. Re-run after fork SHA bump. |
+| **B — bitmap + sound members** | Cargo tests in the dirplayer-rs fork (Rust, no Electron) | `<room_id>/<member>.png`, `_members.json`, plus `sounds/<name>.wav` + `_sounds.json` (dcr dumper) | Routine. Re-run after fork SHA bump. |
 
 Most users only need Rail B. Rail A's outputs are typically committed
 alongside downstream consumers, so a fresh checkout has the text
@@ -62,11 +65,11 @@ cokemusic-extractor/
 └── setup.sh             Clones fork at pinned SHA
 ```
 
-The Rust bitmap dumpers (Rail B) live in the fork at
+The Rust bitmap + sound dumpers (Rail B) live in the fork at
 [`reowens/dirplayer-rs#cokemusic`](https://github.com/reowens/dirplayer-rs/tree/cokemusic) —
 not in this repo. `setup.sh` clones the fork for you; from there you
-`cd ../dirplayer-rs && cargo test -p vm-rust ...` to dump bitmaps. See
-[SETUP.md](docs/SETUP.md) for the exact commands.
+`cd ../dirplayer-rs && cargo test -p vm-rust ...` to dump bitmaps
+and sounds. See [SETUP.md](docs/SETUP.md) for the exact commands.
 
 ## License
 

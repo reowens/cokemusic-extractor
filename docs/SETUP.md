@@ -5,7 +5,7 @@ How to set up the toolchain and run both extraction rails.
 ## Prereqs
 
 - **Python ≥ 3.10** (for Rail A — text bodies)
-- **Rust + cargo** (stable; for Rail B — bitmap dumpers)
+- **Rust + cargo** (stable; for Rail B — bitmap + sound dumpers)
 - **jq** (`brew install jq` on macOS) — used by `setup.sh`
 - **Cast files** (`.cct`, `.dcr`) sourced from a community archive — this
   repo ships tools only, no binaries
@@ -35,7 +35,7 @@ $EDITOR .env
 source .env
 ```
 
-## Rail B — bitmap dumpers (the routine path)
+## Rail B — bitmap + sound dumpers (the routine path)
 
 From the fork checkout root (after `setup.sh` clones the fork as a
 sibling):
@@ -55,7 +55,7 @@ cargo test -p vm-rust --test dump_engine_bitmaps -- --nocapture
 # Furniture regPoint metadata (JSON only, no PNGs)
 cargo test -p vm-rust --test dump_furniture_bitmaps -- --nocapture
 
-# Recycler mini-game (FurniFactory2.dcr)
+# Recycler mini-game (FurniFactory2.dcr) — bitmaps + sounds
 cargo test -p vm-rust --test dump_dcr_bitmaps -- --nocapture
 ```
 
@@ -66,9 +66,16 @@ Outputs land at:
 - `<OUTPUT_ROOT>/furniture/_cc_furniture_members.json` — furniture
   regPoint metadata (JSON only, no PNGs)
 - `<OUTPUT_ROOT>/games/recycler/` — Recycler mini-game PNGs +
-  `_members.json` (also dual-written to
-  `/tmp/dirplayer_dumps/recycler/` as a fixed scratch path for
-  debugging)
+  `_members.json`
+- `<OUTPUT_ROOT>/games/recycler/sounds/` — Recycler PCM WAVs +
+  `_sounds.json` (one entry per named sound member; channels /
+  sampleRate / bitsPerSample / sampleCount / codec / wavByteLength).
+  Cast member names are preserved verbatim in the filenames (case
+  matters on case-sensitive filesystems).
+
+Recycler outputs are also dual-written to
+`/tmp/dirplayer_dumps/recycler/` (and `…/sounds/` for the WAVs) as
+a fixed scratch path for debugging.
 
 Output paths are also documented in each dumper's source-file header
 inside the fork checkout.

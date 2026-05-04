@@ -13,7 +13,7 @@ sources.
 - **Not a runtime port.** This is format-conversion only. To play
   Director files in a browser, see
   [igorlira/dirplayer-rs](https://github.com/igorlira/dirplayer-rs)
-  (which this repo's bitmap dumpers depend on).
+  (which this repo's bitmap + sound dumpers depend on).
 - **Not a distribution channel for the game's assets.** This repo
   ships tools only — no cast files (`.cct`, `.dcr`), no extracted
   PNGs, no extracted JSON.
