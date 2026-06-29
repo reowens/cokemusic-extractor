@@ -25,11 +25,20 @@ Rail A (`extract/extract_room.py`) writes one JSON file per room:
   "scripts": {
     "scripts": [
       {
+        "cast_lib": 19,
+        "cast_member": 46,
         "name": "<script_name>",
-        "text": "<lingo source>"
+        "script_type": "score",
+        "handlers": ["new", "init", "exitFrame"],
+        "handler_sources": {
+          "new": "<decompiled lingo source>",
+          "init": "<decompiled lingo source>",
+          "exitFrame": "<decompiled lingo source>"
+        }
       }
     ],
-    "total_count": 12
+    "total_count": 12,
+    "handler_source_count": 94
   }
 }
 ```
@@ -48,7 +57,10 @@ Rail A (`extract/extract_room.py`) writes one JSON file per room:
 | `members[].name` | string | The member's name as set in Director, possibly empty. |
 | `members[].member_type` | string | Director member type: `bitmap`, `script`, `text`, `sound`, `field`, `palette`, `filmLoop`, etc. |
 | `text_bodies` | object | Keyed by member name; value is the text content of that text/field/script member. Director-internal names like `MapXml`, `SceneXml`, `EntryXml` carry the structured per-room layout / scene / entry metadata. |
-| `scripts` | object | `scripts[]` lists every script-type member with its source. `total_count` is the array length (sanity check). |
+| `scripts` | object | `scripts[]` lists every script-type member, sorted by `(name, cast_member)` for stable diffs. `total_count` is the array length; `handler_source_count` is the number of decompiled handler bodies (sanity checks). |
+| `scripts.scripts[].script_type` | string | Director script type: `score` (behavior), `movie`, `parent`. |
+| `scripts.scripts[].handlers` | array | Handler (method) names defined on the script. |
+| `scripts.scripts[].handler_sources` | object | Keyed by handler name; value is the decompiled Lingo source for that handler, or `<DECOMPILE_FAILED: …>` if decompilation failed (one bad handler never aborts the run). |
 
 ## Bitmap members
 

@@ -5,6 +5,8 @@ import json
 import sys
 import urllib.request
 
+from _safe_write import safe_write, WIPClobberError
+
 MCP_URL = "http://localhost:9847/"
 CAST_LIB = 19  # Studio slot we hot-swap into
 CAST_BASE = "http://127.0.0.1:8765/publicrooms"
@@ -42,23 +44,55 @@ def unquote_string(value: str) -> str:
     return value
 
 
+def collect_script_bodies(scripts: dict, tool_fn=tool) -> dict:
+    """Attach decompiled Lingo source to every script in a `list_scripts` result.
+
+    `list_scripts` only yields each script's name + handler *names*; the actual
+    behavior source comes from `decompile_handler` (per cast_lib/cast_member/
+    handler_name → `{handler_name, arguments, source}`). For each handler we
+    store its `source` under `script["handler_sources"][handler_name]`. This is
+    what turns the bare script list into real per-room behavior bodies
+    (e.g. whale_wash's ColorBlendAnimator, whose `.ls` exists only inside
+    `secretroom.cct`).
+
+    Decompile failures are recorded inline so one bad handler never aborts the
+    whole extraction. Mutates and returns `scripts`."""
+    captured = 0
+    for s in scripts.get("scripts") or []:
+        cl, cm = s.get("cast_lib"), s.get("cast_member")
+        sources: dict[str, str] = {}
+        for hname in s.get("handlers", []):
+            try:
+                d = tool_fn(
+                    "decompile_handler",
+                    {"cast_lib": cl, "cast_member": cm, "handler_name": hname},
+                )
+                sources[hname] = d.get("source", "")
+            except Exception as e:  # noqa: BLE001 — never abort on one handler
+                sources[hname] = f"<DECOMPILE_FAILED: {e}>"
+            captured += 1
+        s["handler_sources"] = sources
+    scripts["handler_source_count"] = captured
+    return scripts
+
+
 def extract(room_name: str, out_path: str) -> None:
     cct_url = f"{CAST_BASE}/{room_name}.cct"
 
-    print(f"[0/5] Clearing castLib({CAST_LIB}) via Empty.cct cycle...", file=sys.stderr)
+    print(f"[0/6] Clearing castLib({CAST_LIB}) via Empty.cct cycle...", file=sys.stderr)
     r = eval_expr(f'castLib({CAST_LIB}).fileName = "http://127.0.0.1:8765/Empty.cct"', req_id=0)
     assert r.get("success"), r
 
-    print(f"[1/5] Hot-swapping castLib({CAST_LIB}).fileName -> {cct_url}", file=sys.stderr)
+    print(f"[1/6] Hot-swapping castLib({CAST_LIB}).fileName -> {cct_url}", file=sys.stderr)
     r = eval_expr(f'castLib({CAST_LIB}).fileName = "{cct_url}"', req_id=1)
     assert r.get("success"), r
 
-    print(f"[2/5] Listing cast members of lib {CAST_LIB}...", file=sys.stderr)
+    print(f"[2/6] Listing cast members of lib {CAST_LIB}...", file=sys.stderr)
     members = tool("list_cast_members", {"cast_lib": CAST_LIB}, req_id=2)
     print(f"      {len(members)} members loaded", file=sys.stderr)
 
     text_payloads: dict[str, str] = {}
-    print(f"[3/5] Reading text/field bodies via eval_lingo...", file=sys.stderr)
+    print(f"[3/6] Reading text/field bodies via eval_lingo...", file=sys.stderr)
     for m in members:
         if m["member_type"] in ("text", "field"):
             num = m["cast_member"]
@@ -71,8 +105,24 @@ def extract(room_name: str, out_path: str) -> None:
             except Exception as e:
                 text_payloads[m["name"]] = f"<EXCEPTION: {e}>"
 
-    print(f"[4/5] Listing scripts in lib {CAST_LIB}...", file=sys.stderr)
+    print(f"[4/6] Listing scripts in lib {CAST_LIB}...", file=sys.stderr)
     scripts = tool("list_scripts", {"cast_lib": CAST_LIB}, req_id=3)
+
+    print(
+        f"[5/6] Decompiling handler sources for {scripts.get('total_count', 0)} scripts...",
+        file=sys.stderr,
+    )
+    collect_script_bodies(scripts)
+    print(
+        f"      {scripts.get('handler_source_count', 0)} handler bodies captured",
+        file=sys.stderr,
+    )
+
+    # `list_scripts` returns scripts in a non-deterministic order (HashMap
+    # iteration in the Rust MCP), so re-extractions produce noisy reorder-only
+    # diffs. Sort by (name, cast_member) for stable, diff-friendly output.
+    if isinstance(scripts.get("scripts"), list):
+        scripts["scripts"].sort(key=lambda s: (s.get("name") or "", s.get("cast_member") or 0))
 
     out = {
         "room": room_name,
@@ -83,9 +133,13 @@ def extract(room_name: str, out_path: str) -> None:
         "text_bodies": text_payloads,
         "scripts": scripts,
     }
-    with open(out_path, "w") as f:
-        json.dump(out, f, indent=2)
-    print(f"Wrote {out_path} ({len(json.dumps(out))} bytes)", file=sys.stderr)
+    content = json.dumps(out, indent=2) + "\n"
+    try:
+        safe_write(out_path, content)
+    except WIPClobberError as e:
+        print(f"[6/6] SKIP {out_path}: {e}", file=sys.stderr)
+        sys.exit(1)
+    print(f"[6/6] Wrote {out_path} ({len(content)} bytes)", file=sys.stderr)
 
 
 if __name__ == "__main__":

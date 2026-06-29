@@ -22,7 +22,7 @@ formats modern code can read:
   carrying channels / sample rate / bit depth / codec; currently
   emitted by the `.dcr` dumper).
 - **Text bodies → JSON** (scene XML, room descriptions, member names,
-  attached Lingo scripts).
+  and attached Lingo scripts with their decompiled handler source).
 
 ## Two rails
 
