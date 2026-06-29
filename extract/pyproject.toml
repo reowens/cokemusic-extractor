@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 [project]
 name = "cokemusic-extractor"
-version = "0.1.0"
+version = "0.3.0"
 description = "Python text-body extractors for CokeMusic / Coke Studios Director cast files"
 requires-python = ">=3.10"
 license = { text = "GPL-3.0-or-later" }
