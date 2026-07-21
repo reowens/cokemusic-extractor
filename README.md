@@ -8,6 +8,10 @@ original 2007 client. Format conversion only — not a runtime port.
 (See [igorlira/dirplayer-rs](https://github.com/igorlira/dirplayer-rs)
 if you want to actually *play* Director files in a browser.)
 
+> **Release status:** v0.3.1 pins pushed hardened backend `cfd7329`.
+> Authenticated Rail A extraction is verified. Release tags are signed; no cast
+> files or generated/proprietary asset bundles are released.
+
 ## What this does
 
 CokeMusic / Coke Studios was a 2005-2007 browser game by Coca-Cola
@@ -17,7 +21,7 @@ Director's binary format. This toolchain converts those files into
 formats modern code can read:
 
 - **Bitmap members → PNG** (per-room background, every sprite,
-  furniture members, palette-cycle variants, filmLoop manifests).
+  furniture and avatar members, palette-cycle variants, filmLoop manifests).
 - **Sound members → WAV** (PCM, with a `_sounds.json` sidecar
   carrying channels / sample rate / bit depth / codec; currently
   emitted by the `.dcr` dumper).
@@ -69,11 +73,13 @@ The Rust bitmap + sound dumpers (Rail B) live in the fork at
 [`reowens/dirplayer-rs#cokemusic`](https://github.com/reowens/dirplayer-rs/tree/cokemusic) —
 not in this repo. `setup.sh` clones the fork for you; from there you
 `cd ../dirplayer-rs && cargo test -p vm-rust ...` to dump bitmaps
-and sounds. See [SETUP.md](docs/SETUP.md) for the exact commands.
+and sounds. The pinned revision provides seven bitmap dumpers plus the
+Recycler sprite-channel/behavior dumper. See [SETUP.md](docs/SETUP.md)
+for the exact commands.
 
 ## License
 
-GPL-3.0-or-later. Inherited from
+GPL-3.0-only. Inherited from
 [`igorlira/dirplayer-rs`](https://github.com/igorlira/dirplayer-rs).
 See [LICENSE](LICENSE).
 

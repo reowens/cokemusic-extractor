@@ -2,14 +2,22 @@
 
 How to set up the toolchain and run both extraction rails.
 
+## Release status
+
+Version 0.3.1 pins pushed hardened backend `cfd7329`. Authenticated Rail A
+extraction has been verified. Release manifests are authenticated by signed Git
+tags. Cast payloads and generated or proprietary asset bundles are outside the
+release.
+
 ## Prereqs
 
 - **Python ≥ 3.10** (for Rail A — text bodies)
-- **Rust + cargo** (stable; for Rail B — bitmap + sound dumpers)
-- **For Rail A only:** a **rustup-managed** toolchain with the
-  `wasm32-unknown-unknown` target (`rustup target add
-  wasm32-unknown-unknown`) + `wasm-pack` + Node/Electron, to build and run
-  the dirplayer-rs MCP host. See Rail A Gotcha A.
+- **Rust 1.95.0 + cargo** (for Rail B — bitmap + sound dumpers), selected by
+  the pinned fork's `rust-toolchain.toml`.
+- **For Rail A only:** the pinned `wasm32-unknown-unknown` target,
+  **wasm-pack 0.14.0**, and Node/Electron. Run `npm run check:toolchain` and
+  `npm run build-vm` in the dirplayer checkout rather than invoking ambient
+  `wasm-pack` directly.
 - **jq** (`brew install jq` on macOS) — used by `setup.sh`
 - **Cast files** (`.cct`, `.dcr`) sourced from a community archive — this
   repo ships tools only, no binaries
@@ -29,7 +37,7 @@ SHA.
 
 ## Environment
 
-Copy `.env.example` to `.env` and fill in the four paths. The Rail B
+Copy `.env.example` to `.env` and fill in the paths you use. The Rail B
 dumpers (run from inside the fork checkout) read these from the
 environment.
 
@@ -47,28 +55,43 @@ sibling):
 ```bash
 cd ../dirplayer-rs    # or "$DIRPLAYER_DEST"
 
-# Backgrounds + per-room sprites for the 23 publicrooms
+# Backgrounds + per-room sprites for the 24 publicrooms
 cargo test -p vm-rust --test dump_cct_bitmaps -- --nocapture
 
 # Studio templates (Studio A-G + suites)
 cargo test -p vm-rust --test dump_studio_bitmaps -- --nocapture
 
+# Studio wall/floor pattern CLUT variants
+cargo test -p vm-rust --test dump_studio_palette_variants -- --nocapture
+
 # Engine cast libraries (cc_room, cc_furniture, chatengine, etc.)
 cargo test -p vm-rust --test dump_engine_bitmaps -- --nocapture
 
-# Furniture regPoint metadata (JSON only, no PNGs)
+# Every named furniture bitmap plus regPoint metadata
 cargo test -p vm-rust --test dump_furniture_bitmaps -- --nocapture
+
+# Avatar-engine + people cast bitmaps and optional UTM comparison
+cargo test -p vm-rust --test dump_avatar_bitmaps -- --nocapture
 
 # Recycler mini-game (FurniFactory2.dcr) — bitmaps + sounds
 cargo test -p vm-rust --test dump_dcr_bitmaps -- --nocapture
+
+# Recycler sprite-channel and behavior data
+cargo test -p vm-rust --test dump_dcr_score -- --nocapture
 ```
 
 Outputs land at:
-- `<OUTPUT_ROOT>/rooms/<room_id>/...` — publicroom + studio PNGs and
+- `<OUTPUT_ROOT>/rooms/<room_id>/...` — publicroom PNGs and
   `_members.json` sidecars
+- `<OUTPUT_ROOT>/assets/rooms/<room_id>/...` — studio PNGs and sidecars
+- `<OUTPUT_ROOT>/assets/rooms/_studio_palette_variants/` — pre-rendered
+  studio CLUT variants and their manifest
 - `<OUTPUT_ROOT>/ui/...` — engine cast library PNGs
-- `<OUTPUT_ROOT>/furniture/_cc_furniture_members.json` — furniture
-  regPoint metadata (JSON only, no PNGs)
+- `<OUTPUT_ROOT>/furniture/data/...` and
+  `<OUTPUT_ROOT>/furniture/_cc_furniture_members.json` — furniture PNGs
+  and regPoint metadata
+- `<OUTPUT_ROOT>/avatars/<cast>/...` — avatar PNGs, metadata, and the
+  optional UTM comparison
 - `<OUTPUT_ROOT>/games/recycler/` — Recycler mini-game PNGs +
   `_members.json`
 - `<OUTPUT_ROOT>/games/recycler/sounds/` — Recycler PCM WAVs +
@@ -82,7 +105,8 @@ Recycler outputs are also dual-written to
 a fixed scratch path for debugging.
 
 Output paths are also documented in each dumper's source-file header
-inside the fork checkout.
+inside the fork checkout. These mixed subdirectory conventions describe the
+currently pinned hardened backend and must be revalidated for every lock bump.
 
 ## Rail A — text bodies + script bodies (rare, heavy)
 
@@ -119,17 +143,19 @@ cp "$STAGED/Empty.cct" "$STAGED/cc_messenger[1].cct"
 #    /publicrooms/<room>.cct
 python3 extract/cors_server.py 8765 "$STAGED" &
 
-# 3. Boot dirplayer-rs in Electron with the MCP server FORCED on (no GUI
-#    toggle / localStorage seeding needed — Gotcha B). MCP listens on
-#    :9847 once the renderer boots; it does NOT need a movie first.
+# 3. Generate a run-scoped token, then boot dirplayer-rs with MCP forced on.
+#    Keep the token exported for curl and the extractor processes.
+export DIRPLAYER_MCP_TOKEN="$(node -p 'require("crypto").randomBytes(32).toString("base64url")')"
 ( cd ../dirplayer-rs && REACT_APP_MCP_FORCE_ENABLED=true npm run electron-dev & )
-# wait for "MCP server listening on http://localhost:9847"
+# Wait for "MCP server listening on http://127.0.0.1:9847".
 
 # 4. Load the base movie so castLib(19) (the "Studio" slot extract_room.py
 #    hot-swaps) exists — SF_Client.dcr's preload brings up all 19 engine
 #    cast libs. extract_room.py does NOT load it itself (Gotcha D).
 #    autoplay:false skips the SmartFox network init; we only need static data.
-curl -s localhost:9847 -H 'Content-Type: application/json' -d '{
+curl -fsS localhost:9847 \
+  -H "Authorization: Bearer $DIRPLAYER_MCP_TOKEN" \
+  -H 'Content-Type: application/json' -d '{
   "jsonrpc":"2.0","id":1,"method":"tools/call","params":{
     "name":"load_movie",
     "arguments":{"url":"http://127.0.0.1:8765/SF_Client.dcr","autoplay":false}}}'
@@ -154,9 +180,11 @@ re-extractions are idempotent and diff cleanly.
   `PATH="$HOME/.rustup/toolchains/<toolchain>/bin:$PATH" wasm-pack build
   --target web`. (`~/.cargo/bin` shims can be stale/dangling and silently
   fall through to the wrong rust.)
-- **B — enable MCP.** The server only starts when
+- **B — enable and authenticate MCP.** The server only starts when
   `localStorage['mcp:enabled']==='true'` AND `isElectron()`.
   `REACT_APP_MCP_FORCE_ENABLED=true` forces it on for headless extraction.
+  The server and every extraction client must share the run-scoped
+  `DIRPLAYER_MCP_TOKEN`; unauthenticated requests are rejected.
 - **C — messenger stub.** Serve a staged cast tree with
   `cc_messenger[1].cct` replaced by the `Empty.cct` stub, or
   `SF_Client.dcr`'s preload panics in `vm-rust/src/director/file.rs`
@@ -174,3 +202,7 @@ re-extractions are idempotent and diff cleanly.
 3. Update `dirplayer-rs.lock`'s `sha` field.
 4. Re-run the dumpers; ship the resulting PNG / `_members.json`
    deltas alongside the bump.
+
+Before release, perform those steps from a clean checkout, verify every
+documented output path and deterministic manifest twice, then create a signed
+annotated release tag. Never point this lock at an unpushed commit.

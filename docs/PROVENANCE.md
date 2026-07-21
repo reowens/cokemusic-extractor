@@ -36,10 +36,15 @@ this toolchain extracts data from.
 
 ## License
 
-This toolchain: GPL-3.0-or-later (see [`LICENSE`](../LICENSE)).
+This toolchain: GPL-3.0-only (see [`LICENSE`](../LICENSE)).
 
 The dirplayer-rs fork (`reowens/dirplayer-rs`) which this toolchain
 depends on at runtime is also GPL-3.0, inherited from the upstream
 project [igorlira/dirplayer-rs](https://github.com/igorlira/dirplayer-rs).
 Upstream credit and lineage are preserved at the GitHub fork level
 (the "forked from" badge appears on the repo page).
+
+The extractor and its dirplayer dependency both declare `GPL-3.0-only`.
+Release manifests are authenticated by signed Git tags. This tools-only
+repository does not release cast payloads or generated/proprietary asset
+bundles.

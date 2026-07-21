@@ -62,20 +62,39 @@ Rail A (`extract/extract_room.py`) writes one JSON file per room:
 | `scripts.scripts[].handlers` | array | Handler (method) names defined on the script. |
 | `scripts.scripts[].handler_sources` | object | Keyed by handler name; value is the decompiled Lingo source for that handler, or `<DECOMPILE_FAILED: …>` if decompilation failed (one bad handler never aborts the run). |
 
-## Bitmap members
+## Rail B outputs
 
 PNGs for bitmap members are produced by Rail B (the Rust dumpers in
 the fork), not Rail A. The Rust dumpers cross-reference Rail A's
-`members[]` to know which cast members to render. Output:
+`members[]` when `ROOM_JSON_DIR` is set to know which publicroom cast members
+to render. The currently pinned development backend writes publicroom output:
 
 - `<OUTPUT_ROOT>/rooms/<room_id>/<member_name>.png`
 - `<OUTPUT_ROOT>/rooms/<room_id>/_members.json` — sidecar with
-  per-member metadata (regPoint, bitDepth, originalBitDepth, useAlpha,
-  width, height) consumed by downstream atlas builders.
+  per-member metadata (`name`, cast reference, registration point, decoded and
+  original bit depth, alpha use, palette reference, width, and height).
 
 The `_members.json` schema mirrors the dumper source — see
 `vm-rust/tests/dump_cct_bitmaps.rs` in the fork for the canonical
 shape.
+
+Other dumper outputs are:
+
+| Dumper | Output |
+|---|---|
+| `dump_studio_bitmaps` | `<OUTPUT_ROOT>/assets/rooms/` backgrounds, per-studio members, `_studios.json`, and `_studio_members.json` |
+| `dump_studio_palette_variants` | `<OUTPUT_ROOT>/assets/rooms/_studio_palette_variants/` PNGs and `_studio_palette_variants.json` |
+| `dump_engine_bitmaps` | `<OUTPUT_ROOT>/ui/` PNGs and `_engine_members.json` |
+| `dump_furniture_bitmaps` | `<OUTPUT_ROOT>/furniture/data/` PNGs and `<OUTPUT_ROOT>/furniture/_cc_furniture_members.json` |
+| `dump_avatar_bitmaps` | `<OUTPUT_ROOT>/avatars/<cast>/data/` PNGs and `<OUTPUT_ROOT>/avatars/<cast>/_members.json`; optional `people/_utm_comparison.json` |
+| `dump_dcr_bitmaps` | `<OUTPUT_ROOT>/games/recycler/` PNGs, `_members.json`, and `sounds/` |
+| `dump_dcr_score` | `<OUTPUT_ROOT>/games/recycler/` sprite-channel and behavior JSON |
+
+The hardened backend emits skip
+summaries. Full CCT runs write `_skip_summary.json`; filtered CCT runs write
+`_skip_summary.filtered.json` so they cannot replace full-run evidence. DCR
+summaries with bounded examples. Deterministic ordering and filtered/full scope
+separation remain release gates for clean-checkout validation.
 
 ## Sound members
 

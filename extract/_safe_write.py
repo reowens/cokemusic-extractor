@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: GPL-3.0-only
 """WIP-clobber guard for generator scripts.
 
 Generators (translate_all.py, translate_room.py, etc.) regenerate tracked

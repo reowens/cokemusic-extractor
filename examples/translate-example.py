@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: GPL-3.0-only
 """
 Reference consumer of the Rail A JSON schema.
 
@@ -39,9 +39,8 @@ Usage
     python3 examples/translate-example.py <extracted/room.json>
     python3 examples/translate-example.py <extracted/room.json> --output-root <abs/path>
 
-The optional ``--output-root`` should point at the directory tree
-written by Rail B's ``dump_cct_bitmaps`` (i.e. the ``<OUTPUT_ROOT>``
-env var passed to that test). When set, each bitmap member entry
+The optional ``--output-root`` is exactly the ``OUTPUT_ROOT`` env var
+passed to ``dump_cct_bitmaps``. When set, each bitmap member entry
 gains a ``bitmap_path`` field that is either an existing absolute
 path or ``null`` if the dumper hasn't written that member yet.
 
@@ -191,7 +190,7 @@ def main(argv: list[str] | None = None) -> int:
         default=None,
         help=(
             "Optional. Directory passed as OUTPUT_ROOT to Rail B's "
-            "bitmap dumpers (the parent of `rooms/`). When set, each "
+            "dump_cct_bitmaps (the parent of `rooms/`). When set, each "
             "bitmap member gets a resolved `bitmap_path` field if the "
             "PNG exists on disk."
         ),

@@ -14,8 +14,9 @@ Reads one `extracted/<room>.json` file produced by
 previews the three structured XML text bodies (`MapXml`, `SceneXml`,
 `EntryXml`), and — if `--output-root` is passed — resolves each bitmap
 member's name to the PNG path that Rail B's `dump_cct_bitmaps` writes
-under `<output_root>/rooms/<room>/`. Output is pretty-printed JSON on
-stdout.
+under `<output_root>/rooms/<room>/`. Here `output_root` is exactly the
+`OUTPUT_ROOT` passed to `dump_cct_bitmaps`, not a project-specific public or
+assets directory. Output is pretty-printed JSON on stdout.
 
 ```bash
 # Schema walk only — no bitmap path resolution.
