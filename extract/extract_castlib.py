@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: GPL-3.0-only
 """Dump any cast lib loaded in the running dirplayer movie via MCP.
 
 Usage:
@@ -22,21 +22,33 @@ Output JSON shape:
     }
 """
 import json
+import os
+import re
 import sys
 import urllib.request
 
 MCP_URL = "http://localhost:9847/"
+MCP_TOKEN_PATTERN = re.compile(r"[A-Za-z0-9_-]{43,128}")
 EMPTY_CCT = "http://127.0.0.1:8765/Empty.cct"
 
 
 def call(method: str, params: dict | None = None, req_id: int = 1) -> dict:
+    token = os.environ.get("DIRPLAYER_MCP_TOKEN")
+    if token is None or MCP_TOKEN_PATTERN.fullmatch(token) is None:
+        raise RuntimeError(
+            "DIRPLAYER_MCP_TOKEN must be a 43-128 character base64url token"
+        )
+
     payload = {"jsonrpc": "2.0", "id": req_id, "method": method}
     if params is not None:
         payload["params"] = params
     req = urllib.request.Request(
         MCP_URL,
         data=json.dumps(payload).encode(),
-        headers={"Content-Type": "application/json"},
+        headers={
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json",
+        },
     )
     with urllib.request.urlopen(req, timeout=60) as resp:
         return json.loads(resp.read())
